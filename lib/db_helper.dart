@@ -6,6 +6,11 @@ import 'package:sqflite/sqflite.dart';
 
 class DBHelper{
 
+  static const String TABLE_NAME = "notes";
+  static const String COLUMN_NOTE_ID = "note_id";
+  static const String COLUMN_NOTE_TITLE = "note_title";
+  static const String COLUMN_NOTE_DESC = "note_desc";
+
   DBHelper._();
   ///private constructor
 
@@ -37,7 +42,7 @@ class DBHelper{
     return await openDatabase(dbPath, version: 1, onCreate: (db, version){
       /// create all tables
 
-      db.execute("create table notes ( note_id integer primary key autoincrement, note_title text, note_desc text)");
+      db.execute("create table $TABLE_NAME ( $COLUMN_NOTE_ID integer primary key autoincrement, $COLUMN_NOTE_TITLE text, $COLUMN_NOTE_DESC text)");
 
     });
 
@@ -53,9 +58,9 @@ class DBHelper{
 
     var db = await initDB();
 
-    db.insert("notes", {
-      "note_title" : title,
-      "note_desc" : desc
+    db.insert(TABLE_NAME, {
+      COLUMN_NOTE_TITLE : title,
+      COLUMN_NOTE_DESC : desc
     });
 
   }
@@ -64,7 +69,7 @@ class DBHelper{
 
     var db = await initDB();
 
-    return await db.query("notes");
+    return await db.query(TABLE_NAME);
 
   }
 
@@ -72,7 +77,11 @@ class DBHelper{
 
   }
 
-  void deleteNote(){
+  void deleteNote(int id) async{
+
+    var db = await initDB();
+
+    db.delete(TABLE_NAME, where: "$COLUMN_NOTE_ID = ?", whereArgs: ["$id"]);
 
   }
 

@@ -45,6 +45,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DBHelper? dbHelper;
   List<Map<String, dynamic>> mNotes = [];
+  var titleController = TextEditingController();
+  var descController = TextEditingController();
+
 
   @override
   void initState() {
@@ -69,8 +72,22 @@ class _HomePageState extends State<HomePage> {
           ? ListView.builder(
               itemCount: mNotes.length, itemBuilder: (_, index) {
                 return ListTile(
-                  title: Text(mNotes[index]["note_title"]),
-                  subtitle: Text(mNotes[index]["note_desc"]),
+                  title: Text(mNotes[index][DBHelper.COLUMN_NOTE_TITLE]),
+                  subtitle: Text(mNotes[index][DBHelper.COLUMN_NOTE_DESC]),
+                  trailing: SizedBox(
+                    width: 100,
+                    child: Row(
+                      children: [
+                        IconButton(onPressed: (){
+                          ///update the data
+                        }, icon: Icon(Icons.edit,)),
+                        IconButton(onPressed: (){
+                          dbHelper!.deleteNote(mNotes[index][DBHelper.COLUMN_NOTE_ID]);
+                          getAllNotes();
+                        }, icon: Icon(Icons.delete, color: Colors.red,)),
+                      ],
+                    ),
+                  ),
                 );
       })
           : Center(
@@ -78,8 +95,71 @@ class _HomePageState extends State<HomePage> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          dbHelper!.addNote(title: "New Note", desc: "Description");
-          getAllNotes();
+          showModalBottomSheet(
+            enableDrag: false,
+            isDismissible: false,
+              context: context,
+              builder: (_){
+                return Container(
+                  width: double.infinity,
+                  height: 500,
+                  padding: EdgeInsets.all(11),
+                  child: Column(
+                    children: [
+                      Text('Save Note', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                      SizedBox(
+                        height: 11,
+                      ),
+                      TextField(
+                        controller: titleController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)
+                          ),
+                          labelText: 'Title',
+                          hintText: 'Enter title'
+                        ),
+                      ),
+                      SizedBox(
+                        height: 11,
+                      ),
+                      TextField(
+                        controller: descController,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)
+                            ),
+                            labelText: 'Desc',
+                            hintText: 'Enter desc'
+                        ),
+                      ),
+                      SizedBox(
+                        height: 11,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(onPressed: (){
+
+                            var title = titleController.text;
+                            var desc = descController.text;
+
+                            dbHelper!.addNote(title: title, desc: desc);
+                            getAllNotes();
+                            Navigator.pop(context);
+
+
+                          }, child: Text('Save')),
+                          SizedBox(width: 11,),
+                          OutlinedButton(onPressed: (){
+                            Navigator.pop(context);
+                          }, child: Text('Cancel')),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              });
         },
         child: Icon(Icons.add),
       ),
