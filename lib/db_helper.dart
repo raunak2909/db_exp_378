@@ -10,6 +10,7 @@ class DBHelper{
   static const String COLUMN_NOTE_ID = "note_id";
   static const String COLUMN_NOTE_TITLE = "note_title";
   static const String COLUMN_NOTE_DESC = "note_desc";
+  static const String COLUMN_NOTE_CREATED_AT = "note_created_at";
 
   DBHelper._();
   ///private constructor
@@ -42,7 +43,7 @@ class DBHelper{
     return await openDatabase(dbPath, version: 1, onCreate: (db, version){
       /// create all tables
 
-      db.execute("create table $TABLE_NAME ( $COLUMN_NOTE_ID integer primary key autoincrement, $COLUMN_NOTE_TITLE text, $COLUMN_NOTE_DESC text)");
+      db.execute("create table $TABLE_NAME ( $COLUMN_NOTE_ID integer primary key autoincrement, $COLUMN_NOTE_TITLE text, $COLUMN_NOTE_DESC text, $COLUMN_NOTE_CREATED_AT text)");
 
     });
 
@@ -54,14 +55,17 @@ class DBHelper{
 
 
   ///queries
-  void addNote({required String title, required String desc}) async{
+  Future<bool> addNote({required String title, required String desc}) async{
 
     var db = await initDB();
 
-    db.insert(TABLE_NAME, {
+    int rowsEffected = await db.insert(TABLE_NAME, {
       COLUMN_NOTE_TITLE : title,
-      COLUMN_NOTE_DESC : desc
+      COLUMN_NOTE_DESC : desc,
+      COLUMN_NOTE_CREATED_AT : DateTime.now().millisecondsSinceEpoch.toString()
     });
+
+    return rowsEffected>0;
 
   }
 
@@ -73,15 +77,26 @@ class DBHelper{
 
   }
 
-  void updateNote(){
-
-  }
-
-  void deleteNote(int id) async{
+  Future<bool> updateNote({required String title, required String desc, required int id}) async{
 
     var db = await initDB();
 
-    db.delete(TABLE_NAME, where: "$COLUMN_NOTE_ID = ?", whereArgs: ["$id"]);
+    int rowsEffected = await db.update(TABLE_NAME, {
+      COLUMN_NOTE_TITLE : title,
+      COLUMN_NOTE_DESC : desc,
+    }, where: "$COLUMN_NOTE_ID = ?", whereArgs: ["$id"]);
+
+    return rowsEffected>0;
+
+  }
+
+  Future<bool> deleteNote(int id) async{
+
+    var db = await initDB();
+
+    int rowsEffected = await db.delete(TABLE_NAME, where: "$COLUMN_NOTE_ID = ?", whereArgs: ["$id"]);
+
+    return rowsEffected>0;
 
   }
 
